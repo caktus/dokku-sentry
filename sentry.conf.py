@@ -203,3 +203,22 @@ MAILGUN_API_KEY = ''
 for env_key, env_val in os.environ.items():
     if env_key.startswith('SC_'):
         globals()[env_key[3:]] = env_val
+
+# If this value ever becomes compromised, it's important to regenerate your
+# SENTRY_SECRET_KEY. Changing this value will result in all current sessions
+# being invalidated.
+secret_key = env('SENTRY_SECRET_KEY')
+if not secret_key:
+    raise Exception('Error: SENTRY_SECRET_KEY is undefined, run `generate-secret-key` and set to -e SENTRY_SECRET_KEY')
+
+if 'SENTRY_RUNNING_UWSGI' not in os.environ and len(secret_key) < 32:
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print('!!                    CAUTION                       !!')
+    print('!! Your SENTRY_SECRET_KEY is potentially insecure.  !!')
+    print('!!    We recommend at least 32 characters long.     !!')
+    print('!!     Regenerate with `generate-secret-key`.       !!')
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+SENTRY_OPTIONS['system.secret-key'] = secret_key
+
+SENTRY_FEATURES['organizations:sso'] = True
