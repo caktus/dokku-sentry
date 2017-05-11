@@ -181,28 +181,32 @@ SENTRY_WEB_OPTIONS = {
 # Mail Server #
 ###############
 
-# For more information check Django's documentation:
-# https://docs.djangoproject.com/en/1.6/topics/email/
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-EMAIL_HOST = 'localhost'
-EMAIL_HOST_PASSWORD = ''
-EMAIL_HOST_USER = ''
-EMAIL_PORT = 25
-EMAIL_USE_TLS = False
+email = env('SENTRY_EMAIL_HOST') or (env('SMTP_PORT_25_TCP_ADDR') and 'smtp')
+if email:
+    SENTRY_OPTIONS['mail.backend'] = 'smtp'
+    SENTRY_OPTIONS['mail.host'] = email
+    SENTRY_OPTIONS['mail.password'] = env('SENTRY_EMAIL_PASSWORD') or ''
+    SENTRY_OPTIONS['mail.username'] = env('SENTRY_EMAIL_USER') or ''
+    SENTRY_OPTIONS['mail.port'] = int(env('SENTRY_EMAIL_PORT') or 25)
+    SENTRY_OPTIONS['mail.use-tls'] = env('SENTRY_EMAIL_USE_TLS', False)
+else:
+    SENTRY_OPTIONS['mail.backend'] = 'dummy'
 
 # The email address to send on behalf of
-SERVER_EMAIL = 'root@localhost'
+SENTRY_OPTIONS['mail.from'] = env('SENTRY_SERVER_EMAIL') or 'root@localhost'
 
 # If you're using mailgun for inbound mail, set your API key and configure a
 # route to forward to /api/hooks/mailgun/inbound/
-MAILGUN_API_KEY = ''
+SENTRY_OPTIONS['mail.mailgun-api-key'] = env('SENTRY_MAILGUN_API_KEY') or ''
 
-# Expose any env that starts with SC_
-for env_key, env_val in os.environ.items():
-    if env_key.startswith('SC_'):
-        globals()[env_key[3:]] = env_val
+# If you specify a MAILGUN_API_KEY, you definitely want EMAIL_REPLIES
+if SENTRY_OPTIONS['mail.mailgun-api-key']:
+    SENTRY_OPTIONS['mail.enable-replies'] = True
+else:
+    SENTRY_OPTIONS['mail.enable-replies'] = env('SENTRY_ENABLE_EMAIL_REPLIES', False)
+
+if SENTRY_OPTIONS['mail.enable-replies']:
+    SENTRY_OPTIONS['mail.reply-hostname'] = env('SENTRY_SMTP_HOSTNAME') or ''
 
 # If this value ever becomes compromised, it's important to regenerate your
 # SENTRY_SECRET_KEY. Changing this value will result in all current sessions
