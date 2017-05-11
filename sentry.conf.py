@@ -19,12 +19,14 @@ redis_url_parts = urlparse.urlparse(redis_url)
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'sentry.db.postgres',
         'NAME': db_url_parts.path[1:],
         'USER': db_url_parts.username,
         'PASSWORD': db_url_parts.password,
         'HOST': db_url_parts.hostname,
         'PORT': db_url_parts.port,
+        'AUTOCOMMIT': True,
+        'ATOMIC_REQUESTS': False,
     }
 }
 
@@ -42,6 +44,7 @@ SENTRY_USE_BIG_INTS = True
 # Instruct Sentry that this install intends to be run by a single organization
 # and thus various UI optimizations should be enabled.
 SENTRY_SINGLE_ORGANIZATION = True
+DEBUG = False
 
 #########
 # Redis #
@@ -49,15 +52,20 @@ SENTRY_SINGLE_ORGANIZATION = True
 
 # Generic Redis configuration used as defaults for various things including:
 # Buffers, Quotas, TSDB
-SENTRY_REDIS_OPTIONS = {
-    'hosts': {
-        0: {
-            'host': redis_url_parts.hostname,
-            'port': redis_url_parts.port,
-            'password': (redis_url_parts.password or None),
-        }
-    }
-}
+SENTRY_OPTIONS.update({
+    'redis.clusters': {
+        'default': {
+            'hosts': {
+                0: {
+                    'host': redis_url_parts.hostname,
+                    'password': (redis_url_parts.password or None),
+                    'port': redis_url_parts.port,
+                    'db': 0,
+                },
+            },
+        },
+    },
+})
 
 #########
 # Cache #
@@ -144,8 +152,7 @@ SENTRY_DIGESTS = 'sentry.digests.backends.redis.RedisBackend'
 # Any Django storage backend is compatible with Sentry. For more solutions see
 # the django-storages package: https://django-storages.readthedocs.org/en/latest/
 
-SENTRY_FILESTORE = 'django.core.files.storage.FileSystemStorage'
-SENTRY_FILESTORE_OPTIONS = {
+SENTRY_OPTIONS['filestore.options'] = {
     'location': '/tmp/sentry-files',
 }
 
@@ -164,7 +171,7 @@ SENTRY_FILESTORE_OPTIONS = {
 # FORCE_SCRIPT_NAME = '/sentry'
 
 SENTRY_WEB_HOST = '0.0.0.0'
-SENTRY_WEB_PORT = os.environ.get('PORT')
+SENTRY_WEB_PORT = os.environ.get('PORT', 9000)
 SENTRY_WEB_OPTIONS = {
     # 'workers': 3,  # the number of gunicorn workers
     # 'secure_scheme_headers': {'X-FORWARDED-PROTO': 'https'},
