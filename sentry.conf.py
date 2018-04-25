@@ -226,3 +226,12 @@ if 'SENTRY_RUNNING_UWSGI' not in os.environ and len(secret_key) < 32:
 SENTRY_OPTIONS['system.secret-key'] = secret_key
 
 SENTRY_FEATURES['organizations:sso'] = True
+
+if 'GITHUB_APP_ID' in os.environ:
+    GITHUB_EXTENDED_PERMISSIONS = ['repo']
+    GITHUB_APP_ID = env('GITHUB_APP_ID')
+    GITHUB_API_SECRET = env('GITHUB_API_SECRET')
+
+if 'BITBUCKET_CONSUMER_KEY' in os.environ:
+    BITBUCKET_CONSUMER_KEY = env('BITBUCKET_CONSUMER_KEY')
+    BITBUCKET_CONSUMER_SECRET = env('BITBUCKET_CONSUMER_SECRET')
