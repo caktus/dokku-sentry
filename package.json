@@ -1,0 +1,6 @@
+{
+  "name": "caktus-dokku-sentry",
+  "version": "0.0.0",
+  "description": "This package.json file is really only here because we need the node buildpack to get node installed, and the node buildpack fails unless there's a package.json file",
+  "main": ""
+}
