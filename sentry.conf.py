@@ -7,7 +7,7 @@ import os.path
 import urlparse
 
 CONF_ROOT = os.path.dirname(__file__)
-
+# test
 # Sentry settings
 SENTRY_FEATURES['auth:register'] = False
 
