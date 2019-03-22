@@ -11,3 +11,4 @@ uWSGI>2.0.0,<2.1.0
 # Plugins
 sentry-plugins
 https://github.com/getsentry/sentry-auth-github/archive/master.zip
+redis-py-cluster==1.3.4
